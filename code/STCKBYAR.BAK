@@ -1,0 +1,57 @@
+\begin{verbatim}
+/*=====================================*
+ *                 STCKBYAR.C          *
+ * functions for stack by array in C   *
+ *=====================================*/
+
+#include "stckbyar.h"
+/* POP REMOVES THE TOP OF STACK */
+
+STACKBYARRAY *stackpop(STACKBYARRAY *pstck)
+     {
+      if(pstck->stack_curr_size==0)
+            pstck->array[0]=NULL;
+      else
+        {
+         pstck->array[pstck->stack_curr_size--]=NULL;
+        }
+      return pstck;
+     }
+
+/* return top of stack */
+NODE *stacktop(STACKBYARRAY *pstck)
+     {
+      if(pstck->stack_curr_size==0)
+          return NULL;
+      else
+         return(pstck->array[pstck->stack_curr_size-1]);
+      }
+
+/* place an item on the stack */
+STACKBYARRAY *stackpush(STACKBYARRAY *pstck,NODE *pnode)
+      {
+       if( pstck->stack_curr_size!=pstck->stack_max_size)
+           pstck->array[pstck->stack_curr_size++]=pnode;
+       return pstck;
+      }
+
+/* create the array dynamically */
+STACKBYARRAY *create_stack_by_array(int size)
+   {
+      STACKBYARRAY *sbap=(STACKBYARRAY *)malloc(sizeof(STACKBYARRAY));
+
+      if(sbap==NULL)
+            fatal_error("no more room for stack by array");
+
+      sbap->array=(NODE **)malloc(sizeof(NODE *)*size);
+
+      if(sbap->array==NULL)
+           fatal_error("no more room for ARRAY in Stack by array");
+
+      sbap->stack_max_size=size;
+      sbap->stack_curr_size=0;
+
+      return(sbap);
+   }
+
+\end{verbatim}

@@ -1,0 +1,23 @@
+\begin{verbatim}
+/*==========================================================*
+ *              ERRORS.C                                    *
+ * the error functions used in the programs,                *
+ * fatal error exits the program after displaying the error *
+ * error carries on                                         *
+ *==========================================================*/
+
+
+#include "errors.h"
+
+void fatal_error(char *error_mess)
+{
+        printf("FATAL ERROR: %s",error_mess);
+        exit(1);
+}
+
+void error(char *error_mess)
+{
+        printf("ERROR: %s",error_mess);
+}
+
+\end{verbatim}

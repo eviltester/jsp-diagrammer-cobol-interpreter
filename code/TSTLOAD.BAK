@@ -1,0 +1,24 @@
+
+from c.o
+i:\jsp\errors.o
+i:\jsp\alpro.o
+i:\jsp\tstload.o
+i:\jsp\box.o
+i:\jsp\boxlist.o
+i:\jsp\drawprim.o
+i:\jsp\op.o
+i:\jsp\system.o
+i:\jsp\tree.o
+i:\jsp\treebox.o
+i:\jsp\alfile.o
+
+i:\jsp\alstring.o
+i:\jsp\node.o
+
+
+
+
+lib lcg.lib+lc.lib+lcm.lib
+VERBOSE
+to i:\jsp\tstload.prg
+

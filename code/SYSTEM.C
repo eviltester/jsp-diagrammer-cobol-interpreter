@@ -1,0 +1,452 @@
+
+/*==========================================================*
+ *                SYSTEM.C                                  *
+ * these functions are all system related to the diagrammer *
+ * the largest being parse() which was developed in a slowly*
+ * built up manner and now needs to be redone, draw_tree    *
+ * also uses a primitive algorithm                          *
+ *==========================================================*/
+#include "system.h"
+#include <osbind.h> /* ST operating system access calls */
+
+
+/*******
+********        FUNCTIONS
+********/
+
+/*=========================================================*
+ * a test function to print the sizes of structures in use *
+ *=========================================================*/
+void print_sizes(void)
+{
+        printf("sizes of structures\n");
+        printf("OPLIST %d bytes\n",sizeof(OPLIST));
+        printf("BOX    %d bytes\n",sizeof(BOX));
+        printf("BOXLIST %d bytes\n",sizeof(BOXLIST));
+        printf("TREE    %d bytes\n",sizeof(TREE));
+        printf("press return to continue \n");
+        getchar();
+}
+
+/*==========================================================*
+ * a recursively defined function to print the tree in text *
+ * adapted from the function given in programs and data     *
+ * structures by Leendert Ammeraal to print b-trees         *
+ * although the one here is more sophisticated              *
+ *==========================================================*/
+void prntree(box,tree)
+        BOX *box;TREE *tree;
+{
+        BOX *children_of;
+        OPLIST  *ops;
+        BOX             *boxpointer,*parent;
+        static indent=0;             /* this is static and used
+                                    by all calls to prntree */
+        int loop;
+        char type=' ';
+
+        parent=get_parent(box,tree); /* get the parent */
+
+ if(box->box_number!=1)  /* so long as its not the root */
+   {
+        if(parent->probench_box.box_type==SELECTION) 
+             type='o';
+        else{ if(parent->probench_box.box_type==ITERATION)
+                  type='*';
+             else type=' ';
+             }
+   }
+
+        indent+=4; /* indent the box */
+
+        if(box->no_children==0) /* if box has no children */
+            {
+             for(loop=0;loop<indent;loop++) /* indent */
+                   printf(" ");
+             printf("%c%d",type,box->box_number); /* print the type
+                                                    and box num */
+             ops=box->op;
+
+             /* now print the ops*/
+             if(ops!=NULL)
+                {
+                  printf(" O-%d,",ops->op_num);
+                  while(ops->next_op!=NULL)
+                     {
+                      ops=ops->next_op;
+                      printf("%d,",ops->op_num);
+                     }
+                }
+
+              printf("\n");
+           }
+        else       /* box has children so print box then children */
+           {
+            for(loop=0;loop<indent;loop++)
+                   printf(" ");
+            printf("%c%d\n",type,box->box_number);
+            children_of=box->children;
+            boxpointer=children_of; /*->box;*/
+            prntree(boxpointer,tree);
+
+            while(children_of->right_sibling/*link*/!=NULL) /* loop around children */
+                 {
+                   children_of=children_of->right_sibling;/*link;*/
+                   boxpointer=children_of;/*->box;*/
+                   prntree(boxpointer,tree);
+                 }
+           }
+        indent-=4; /* de-indent */
+}
+
+/*========================================================*
+ * a large function which control the diagrammer, in fact *
+ * it is basically the diagrammer, it loads in the        *
+ * probench operations, conditions, and symbol table      *
+ * for a hard coded diagram, it is basically a test bed   *
+ *========================================================*/
+void parse(TREE *current_tree)
+{
+        char command[3];
+        int x,y,size;
+        int box_num;
+        int multiple;
+        int loop  /*,op_stat*/;
+        char name[20];
+        BOX	*bp;
+/*        RUN_INFO *run;
+        SYMTAB_ENTRY **symtab=create_symbol_table_array(100);*/
+ /*       OP_LIST_LIST **op_array=create_op_array();*/
+   /*     COND **cond_array=create_cond_array();*/
+
+        /* load the details */
+ /*       load_symtab(symtab,"b:symtable.out");
+        cross_reference(symtab,100);
+        load_cond_array("b:cndout2.dat",cond_array,symtab);
+        load_ops_array("b:opsarray.out",op_array,symtab);
+
+        run=create_run(current_tree,symtab,cond_array,op_array);
+*/
+
+        printf("\n");
+        prntree(current_tree->root,current_tree);
+        printf("\n Command , ?? -help:");
+        scanf("%s",command);
+      /*  run->finished=0;*/
+        multiple=0;
+
+        /* loop around getting 2 character commands and 
+           any necessary details */
+
+        while(strcmp(command,"xx"))
+           {
+             if(!strcmp(command,"??"))
+                   {
+                      printf("\n  COMMANDS FOR ICD:\n");
+                      printf("au - add under\n");
+                      printf("al - add left\n");
+                      printf("ar - add right\n");
+                      printf("aa - add above\n");
+                      printf("mu - add multiple under , needs total n.o boxes\n");
+                      printf("ml - add multiple left , needs total n.o boxes\n");
+                      printf("mr - add multiple right , needs total n.o boxes\n");
+                      printf("ma - add multiple above , needs total n.o boxes\n");
+                      printf("pr - print box\n");
+                      printf("nm - name box , needs name\n");
+                      printf("sh - show tree\n");
+                      printf("dd - delete box number\n");
+                      printf("dr - delete range start_box end_box\n");
+                      printf("db - draw box x , y , size , testing only\n");
+                      printf("dt - draw tree\n");
+                      printf("eb - edit box number\n");
+/*                      printf("do - display ops,  dc - display conds\n");
+                      printf("ds - display symbols, rr - reset run\n");
+                      printf("ss - single step , rc -run to completion\n");
+*/
+                      printf("xx - exit\n");
+                      printf("?? - command list\n");
+                     }
+                  else
+
+                /* single step calls the next op and prints the op 
+                   unless the run is finished */
+
+/*                 if(!strcmp(command,"ss"))
+                   {
+                    if(run->finished)
+                       printf("\n ******** PROGRAM END *********\n");
+                    else{
+                         if(!get_next_op(run))
+                            {
+                              run->finished=1;
+                              printf("\n ******** PROGRAM END *********\n");
+                            }
+                         else{
+                            printf("BOX  %d \n",run->current_box->box_number);
+                            printf("OP   %d \n",run->current_op->op_num);
+                            display_operation(run->current_ops
+                                              [run->current_op->op_num]);
+                            evaluate_operation(run->current_ops
+                                               [run->current_op->op_num]);
+                              }
+                              
+                         }
+                   }
+                else*/
+
+                /* run to completion evaluates ops in turn
+                   with only displays by the program
+                   showing up*/
+
+    /*           if(!strcmp(command,"rc"))
+                  {
+                    if(run->finished)
+                       printf("\n ******** PROGRAM END *********\n");
+                    else{
+                         op_stat=get_next_op(run);
+                         while(op_stat && (!Bconstat(2)))
+                            {
+                            evaluate_operation(run->current_ops
+                                               [run->current_op->op_num]);
+                            op_stat=get_next_op(run);
+                            }
+                         if(op_stat==0)
+                           {
+                             run->finished=1;
+                             printf("\n ******** PROGRAM END *********\n");
+                           }
+                        }
+                   }       
+               else*/
+                 /* reset the run */
+          /*     if(!strcmp(command,"rr"))
+                     {
+                        reset_run(run);
+                      }
+               else*/
+                 /* display the symbol table */
+            /*   if(!strcmp(command,"ds"))
+                    {
+                       quick_display_symtab(symtab,100);
+                    }
+               else*/
+                 /* display the conditions */
+           /*    if(!strcmp(command,"dc"))
+                      {
+                       display_conditions(cond_array);
+                      }
+               else*/
+                 /* display the operations */
+         /*      if(!strcmp(command,"do"))
+                    {
+                        display_operations(op_array);
+                    }
+               else*/
+                 /* add a box under  the specified box */
+               if(!strcmp(command,"au"))
+                    {
+                     scanf("%d",&box_num);
+                     create_under(box_num,current_tree);
+                    }
+               else
+               /* add under box a number of boxes */
+               if(!strcmp(command,"mu"))
+                    {
+                     scanf("%d%d",&box_num,&multiple);
+                     if(create_under(box_num,current_tree))
+                     	for(loop=1;loop<multiple;loop++)
+                           create_right(box_num+1,current_tree);
+                    }
+               else
+               /* add a box left of the desired box */
+               if(!strcmp(command,"al"))
+                    {
+                     scanf("%d",&box_num);
+                     create_left(box_num,current_tree);
+                    }
+               else
+               if(!strcmp(command,"dr"))
+               		{
+               		 scanf("%d",&box_num);
+               		 scanf("%d",&multiple);
+               		 delete_range(box_num,multiple,current_tree);
+               		}
+               else
+               /* add a number of boxes left*/
+               if(!strcmp(command,"ml"))
+                    {
+                     scanf("%d%d",&box_num,&multiple);
+                     if(create_left(box_num,current_tree))
+                     	for(loop=1;loop<multiple;loop++)
+                           create_left(box_num,current_tree);
+                    }
+               else
+              /* add a box right */
+               if(!strcmp(command,"ar"))
+                    {
+                     scanf("%d",&box_num);
+                     create_right(box_num,current_tree);
+                    }
+               else
+               /* add a number of boxes left */
+               if(!strcmp(command,"mr"))
+                     {
+                      scanf("%d%d",&box_num,&multiple);
+                      if(create_right(box_num,current_tree))
+                      	for(loop=1;loop<multiple;loop++)
+                              create_right(box_num,current_tree);
+                     }
+               else
+               /* add a box above */
+               if(!strcmp(command,"aa"))
+                     {
+                      scanf("%d",&box_num);
+                      create_above(box_num,current_tree);
+                     }
+               else
+              /* add a number of boxes above */
+              if(!strcmp(command,"ma"))
+                    {
+                      scanf("%d%d",&box_num,&multiple);
+                      if(create_above(box_num,current_tree))
+                      	for(loop=1;loop<multiple;loop++)
+                           create_above(box_num,current_tree);
+                    }
+               else
+               /* print box details for a pecific box */
+               if(!strcmp(command,"pr"))
+                    {
+                     scanf("%d",&box_num);
+                     if((bp=find_box(box_num,current_tree))!=NULL)
+                     box_print(bp);
+                    }
+                else
+              /* name a box */
+                if(!strcmp(command,"nm"))
+                     {
+                      scanf("%d",&box_num);
+                      scanf("%s",&name);
+                      if((bp=find_box(box_num,current_tree))!=NULL)
+                      	name_box(bp,name);
+                     }
+                 else
+              /* display the tree textually */
+                 if(!strcmp(command,"sh"))
+                     {
+                       printf("\n");
+                       prntree(current_tree->root,current_tree);
+                     }
+                 else
+               /* test the draw box function */
+                 if(!strcmp(command,"db"))
+                      {
+                       scanf("%d",&x);
+                       scanf("%d",&y);
+                       scanf("%d",&size);
+                       draw_box(x,y,size);
+                      }
+                 else
+               /* delete a box */
+                 if(!strcmp(command,"dd"))
+                      {
+                        scanf("%d",&box_num);
+                        delete(box_num,current_tree);
+                      }
+                 else
+               /* draw the tree graphically */
+                 if(!strcmp(command,"dt"))
+                     {
+                      draw_tree(current_tree->root,10,10);
+                     }
+                 else
+               /* edit the box details */
+                 if(!strcmp(command,"eb"))
+                     {
+                       scanf("%d",&box_num);
+                       if((bp=find_box(box_num,current_tree))!=NULL)
+                       		edit_box(bp,current_tree);
+                     }
+                 else
+                    printf("command not recognised\n");
+
+
+
+                 printf("\n Command ?? -help:");
+                 scanf("%s",command);
+
+
+     }
+}
+
+/*=======================================================*
+ * draw tree starts off the recursive draw_from function *
+ *=======================================================*/
+void draw_tree(BOX *box,int xlimit,int ylimit)
+        {
+        int currx=200,curry=200;
+
+        draw_from(box,xlimit,ylimit,&currx,&curry,0,0,0,0);
+        }
+
+/*========================================================*
+ * draw_from draws a box at the current x and y and calls *
+ * draw_from with the child boxes                         *
+ *========================================================*/
+void draw_from(BOX *box,int xlimit,int ylimit,int *currx,
+               int *curry,int xcount,int ycount,int parentx,int parenty)
+        {
+                BOX *children_of;
+                BOX *boxpointer;
+                int size=10;                    /* small test values only */
+                int log_box=20;
+                int spx,spy;
+
+                ycount++;
+                *curry+=log_box;  /* advance the y co-ord */
+
+                if(box->no_children!=0) /* if box has children */
+                        {
+
+            /* first check to see if the box is the root,
+               if not then draw a line from the child to the parent */
+               if(parentx!=0 && parenty!=0)
+                 draw_line((parentx+(size/2)),parenty+size,
+                           (*currx+(size/2)),*curry);
+
+                /* draw the box */
+                draw_box(*currx,*curry,size);
+
+                /* save x and y for return */  
+                spx=*currx;spy=*curry;
+
+                /* do first child */
+                children_of=box->children;
+                boxpointer=children_of/*->box*/;
+                draw_from(boxpointer,xlimit,ylimit,currx,curry,
+                          xcount,ycount,spx,spy);
+
+                /* do rest of children */
+                while(children_of->right_sibling/*link*/!=NULL)
+                   {
+                     children_of=children_of->right_sibling/*link*/;
+                     boxpointer=children_of/*->box*/;
+                     draw_from(boxpointer,xlimit,ylimit,currx,
+                               curry,xcount,ycount,spx,spy);
+                   }
+               }
+            else
+               {
+               /* if no children then increase the x co-ord for 
+                  future use */
+                if(parentx!=0 && parenty!=0)
+                     draw_line((parentx+(size/2)),parenty+size,
+                               (*currx+(size/2)),*curry);
+                draw_box(*currx,*curry,size);
+                *currx+=log_box;
+                xcount++;
+               }
+           *curry-=log_box;  /* decrease the y co-ord */
+           ycount--;
+}
+
+
