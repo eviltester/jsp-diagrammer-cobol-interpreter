@@ -15,7 +15,7 @@ Public Domain in the hope it provides value to someone.
 
 I have uploaded the scanned versions of the thesis, the follow on paper and the interim report.
 
-I split the thesis in to sections:
+I split the thesis in to sections (see the thesis folder):
 * 000-105-Thesis-Main.pdf is the most interesting part, with the actual description of the project and aims
 * 106-180-Appendix-E-Cobol_to_C-and_Generated_Code.pdf is a curio. It shows all the JSP diagrams for a Cobol to C translator with the generated source code
 * 181-349-Appendix-F-Cobol_Interpreter_JSP_and_generated_code.pdf is another curio. It shows all the JSP diagrams for the Cobol interpreter, with the generated C code.
